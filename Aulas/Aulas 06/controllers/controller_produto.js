@@ -1,62 +1,62 @@
 const produtos = [];
 
 function listarTodos(req, res) {
-    res.json(produtos);
+  res.json(produtos);
 }
 
-function buscarpeloId(req, res) {
-    const { produtos } = req.params;
-    const produtoencontrado = produtos.find(item => item.id == produtos);
+function buscarPeloId(req, res, next) {
+  const { produtoId } = req.params;
+  const produtoEncontrado = produtos.find((item) => item.id == produtoId);
+  if (produtoEncontrado) {
+    req.produtoEncontrado = produtoEncontrado;
+    next();
+  } else {
+    res.status(404).json({ msg: "Produto não encontrado" });
+  }
+}
 
-    if (produtoencontrado) {
-        res.json(produtoencontrado);
-    } else {
-        res.status(404).json({ msg: 'Produto não encontrado' });
-    }
+function exibir(req, res) {
+  const { produtoEncontrado } = req;
+  res.json(produtoEncontrado);
+}
+
+function validarDados(req, res, next) {
+  const { nome, preco } = req.body;
+  if (nome && preco) {
+    next();
+  } else {
+    res.status(422).json({ msg: "Nome e preço são obrigatórios" });
+  }
 }
 
 function criar(req, res) {
-    const { nome, preco } = req.body;
-    if (nome && preco) {
-        const produtoNovo = {
-            id: produtos.length + 1,
-            nome,
-            preco
-        }
-        produtos.push(produtoNovo);
-        res.status(201).json(produtoNovo);
-    } else {
-        res.status(422).json({ msg: "Nome e preço são obrigatórios" });
-    }
+  const { nome, preco } = req.body;
+  const produtoNovo = { id: produtos.length + 1, nome, preco };
+  produtos.push(produtoNovo);
+  res.status(201).json(produtoNovo);
 }
 
 function atualizar(req, res) {
-const { produtos } = req.params;
-    const produtoencontrado = produtos.find(item => item.id == produtos);
-
-    if (produtoencontrado) {
-        const { nome, preco } = req.body;
-    if (nome && preco) {
-    produtoencontrado.nome = nome;
-    produtoencontrado.preco = preco;
-    res.json(produtoencontrado);
-    } else {
-        res.status(422).json({ msg: "Nome e preço são obrigatórios" });
-    }
-    } else {
-        res.status(404).json({ msg: 'Produto não encontrado' });
-    }
+  const { produtoEncontrado } = req;
+  const { nome, preco } = req.body;
+  produtoEncontrado.nome = nome;
+  produtoEncontrado.preco = preco;
+  res.json(produtoEncontrado);
 }
 
 function remover(req, res) {
-const {produtos} = req.params;
-const posicao = produtos.findIndex(item => item.id == produtos);
-if (posicao >= 0 ) {
-    produtos.splice(posicao, 1);
-    res.status(204).end();
-} else {
-    res.status(404).json({ msg:"Produto não encontrado"});
-}
+  const { produtoId } = req.params;
+  const posicao = produtos.findIndex((item) => item.id == produtoId);
+  produtos.splice(posicao, 1);
+  res.status(204).end();
 }
 
-module.exports = { listarTodos, buscarpeloId, criar, atualizar, remover }
+module.exports = {
+  listarTodos,
+  buscarPeloId,
+  exibir,
+  validarDados,
+  criar,
+  atualizar,
+  remover,
+};
